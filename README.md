@@ -4,8 +4,7 @@ A fun, fast-paced infinite runner built with React, TypeScript, and HTML5 Canvas
 
 ## Preview
 
-<img src="src/assets/racoon-game-preview1.gif" width="600" alt="Game Demo" />
-<img src="src/assets/racoon-game-preview2.gif" width="600" alt="Game Demo" />
+<img src="src/assets/racoon-game-preview1.gif" width="500" alt="Game Demo" /> <img src="src/assets/racoon-game-preview2.gif" width="500" alt="Game Demo" />
 
 
 ## Overview
