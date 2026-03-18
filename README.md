@@ -19,6 +19,7 @@ Take control of a quick-footed raccoon and survive as long as you can! Dodge var
 - **Day/Night Cycle:** The environment changes every 500 points, introducing different visuals and specialized obstacles (like fast motorcycles at night).
 - **High Score Tracking:** Your best score is automatically saved locally so you can always try to beat your record.
 - **Responsive & Full Screen:** The game dynamically scales to fill your browser window horizontally while maintaining its retro aesthetic.
+- **Mobile Support:** The game is playable on mobile devices with touch controls.
 
 ## Game Controls
 
