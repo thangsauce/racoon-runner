@@ -53,7 +53,7 @@ Take control of a quick-footed raccoon and survive as long as you can! Dodge var
 
 ## Building for Production
 
-To create an optimized production build:
+- To create an optimized production build:
 ```
 npm run build
 ```
