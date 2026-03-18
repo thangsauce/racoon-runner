@@ -62,6 +62,6 @@ The compiled files will be generated in the `dist` directory, ready to be deploy
 
 ## Inspiration
 
-This game reimagines the classic Chrome dinosaur game with a playful twist—featuring Ubuntu 26.04 LTS 'Resolute Raccoon' as the star.
+- This game reimagines the classic Chrome dinosaur game with a playful twist—featuring Ubuntu 26.04 LTS 'Resolute Raccoon' as the star.
 
-Born from my recreation of the iconic Ubuntu 26.04 desktop environment for my portfolio, this project celebrates the raccoon's resourceful spirit through interactive fun.
+- Born from my recreation of the iconic Ubuntu 26.04 desktop environment for my portfolio, this project celebrates the raccoon's resourceful spirit through interactive fun.
