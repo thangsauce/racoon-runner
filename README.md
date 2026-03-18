@@ -35,8 +35,8 @@ Take control of a quick-footed raccoon and survive as long as you can! Dodge var
 - **Vite** for blazing fast development and building
 - **Tailwind CSS** for styling
 - **Framer Motion** for animations
-- **p5.js** for game logic
-- **next.js 16** for UI scaling and structure
+- **P5.js** for game logic
+- **Next.js 16** for UI scaling and structure
 
 ## Running Locally
 
