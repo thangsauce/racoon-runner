@@ -20,6 +20,7 @@ Take control of a quick-footed raccoon and survive as long as you can! Dodge var
 - **High Score Tracking:** Your best score is automatically saved locally so you can always try to beat your record.
 - **Responsive & Full Screen:** The game dynamically scales to fill your browser window horizontally while maintaining its retro aesthetic.
 - **Mobile Support:** The game is playable on mobile devices with touch controls.
+- **Sound Effects:** The game features sound effects for jumping, when game goes faster, and motorcycles.
 
 ## Game Controls
 
@@ -33,6 +34,10 @@ Take control of a quick-footed raccoon and survive as long as you can! Dodge var
 - **TypeScript** for robust typing and maintainability
 - **HTML5 Canvas** for high-performance 60fps rendering
 - **Vite** for blazing fast development and building
+- **Tailwind CSS** for styling
+- **Framer Motion** for animations
+- **p5.js** for game logic
+- **next.js 16** for UI scaling and structure
 
 ## Running Locally
 
