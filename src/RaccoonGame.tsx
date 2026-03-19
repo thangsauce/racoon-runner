@@ -233,6 +233,8 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
         this.setState({ best });
         window.addEventListener('keydown', this.handleKey);
         window.addEventListener('keyup', this.handleKeyUp);
+        window.addEventListener('click', this.handleWindowClick);
+        window.addEventListener('touchstart', this.handleWindowTouch, { passive: false });
         this.startIdleLoop();
         this.themeObserver = new MutationObserver(() => {
             if (!this.state.started || this.state.dead) this.draw();
@@ -247,6 +249,8 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
         if (this.audioCtx) { this.audioCtx.close(); this.audioCtx = null; }
         window.removeEventListener('keydown', this.handleKey);
         window.removeEventListener('keyup', this.handleKeyUp);
+        window.removeEventListener('click', this.handleWindowClick);
+        window.removeEventListener('touchstart', this.handleWindowTouch);
         if (this.themeObserver) this.themeObserver.disconnect();
     }
 
@@ -291,7 +295,12 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
         if (!on) this.raccoon.ducking = false;
     };
 
-    tap = () => { this.jump(); };
+    handleWindowClick = () => { this.jump(); };
+
+    handleWindowTouch = (e: TouchEvent) => {
+        e.preventDefault();
+        this.jump();
+    };
 
     start = () => {
         this.setState({ started: true });
@@ -1090,8 +1099,7 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
                 ref={this.canvasRef}
                 width={W}
                 height={H}
-                onClick={this.tap}
-                style={{ cursor: 'pointer', display: 'block', width: '80vw', maxWidth: '800px', height: 'auto', outline: 'none', WebkitTapHighlightColor: 'transparent', imageRendering: 'pixelated' }}
+                style={{ cursor: 'pointer', display: 'block', width: '80vw', maxWidth: '800px', height: 'auto', outline: 'none', WebkitTapHighlightColor: 'transparent', imageRendering: 'pixelated', touchAction: 'none' }}
             />
         );
     }
