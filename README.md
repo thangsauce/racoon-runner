@@ -5,6 +5,7 @@ A fun, fast-paced infinite runner built with React, TypeScript, and HTML5 Canvas
 ## Preview
 
 <img src="src/assets/racoon-game-preview1.gif" width="500" alt="Game Demo" /> <img src="src/assets/racoon-game-preview2.gif" width="500" alt="Game Demo" />
+- To test the game: https://thangsauce.github.io/racoon-runner/
 
 
 ## Overview
