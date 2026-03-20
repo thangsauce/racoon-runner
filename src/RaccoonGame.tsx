@@ -46,8 +46,6 @@ interface Obstacle {
     w: number;
     h: number;
     speedMult?: number;
-    wingUp?: boolean;
-    wingTimer?: number;
     fallen?: boolean;
     fallAngle?: number;
 }
@@ -131,6 +129,21 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
     private deathPixelTime: number | null = null;
     private themeObserver: MutationObserver | null = null;
     private audioCtx: AudioContext | null = null;
+
+    private isDarkMode(): boolean {
+        return !document.body.classList.contains('light-style');
+    }
+
+    private getRaccoonColors(night: boolean, isDark: boolean): (string | null)[] {
+        return [
+            null,
+            night ? '#b8b8b8' : (isDark ? '#999999' : '#767676'),
+            night ? '#686868' : (isDark ? '#484848' : '#3a3a3a'),
+            night ? '#d8d8d8' : (isDark ? '#c0c0c0' : '#b8b8b8'),
+            '#111111',
+            '#eeeeee',
+        ];
+    }
 
     private getAudioCtx(): AudioContext {
         if (!this.audioCtx) this.audioCtx = new AudioContext();
@@ -415,25 +428,23 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
             this.obstacleTimer = 0;
             this.nextObstacleIn = lerp(1000, 2000, Math.random()) * (INITIAL_SPEED / this.speed) + (extraGap ?? 0);
         }
-        this.obstacles.forEach(o => { o.x -= this.speed * (o.speedMult ?? 1) * t; });
-        this.obstacles = this.obstacles.filter(o => o.x + o.w > -10);
-
-        // knock over cones on hit
-        this.obstacles.forEach(o => {
-            if (o.type === 'cone' && !o.fallen && this.hitTest(o)) {
-                o.fallen = true;
-                o.fallAngle = 0;
+        // move, filter, animate cones, and detect collision in one pass
+        const survived: Obstacle[] = [];
+        let killer: Obstacle | null = null;
+        for (const o of this.obstacles) {
+            o.x -= this.speed * (o.speedMult ?? 1) * t;
+            if (o.x + o.w <= -10) continue;
+            survived.push(o);
+            if (o.type === 'cone') {
+                if (!o.fallen && this.hitTest(o)) { o.fallen = true; o.fallAngle = 0; }
+                else if (o.fallen && (o.fallAngle ?? 0) < Math.PI / 2) {
+                    o.fallAngle = Math.min(Math.PI / 2, (o.fallAngle ?? 0) + 0.18 * t);
+                }
+            } else if (!killer && this.hitTest(o)) {
+                killer = o;
             }
-        });
-        // animate falling cones
-        this.obstacles.forEach(o => {
-            if (o.type === 'cone' && o.fallen && (o.fallAngle ?? 0) < Math.PI / 2) {
-                o.fallAngle = Math.min(Math.PI / 2, (o.fallAngle ?? 0) + 0.18 * t);
-            }
-        });
-
-        // collision (cones excluded — they just fall)
-        const killer = this.obstacles.find(o => o.type !== 'cone' && this.hitTest(o));
+        }
+        this.obstacles = survived;
         if (killer) {
             this.killerObstacle = killer;
             const best = Math.max(scoreInt, this.state.best);
@@ -471,7 +482,7 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
             const h = heights[Math.floor(Math.random() * heights.length)];
             const birdSpeed = Math.random() < 0.4 ? 1.5 : 1;
 
-            this.obstacles.push({ type: 'bird', x: W + 20, y: h, w: 42, h: 28, wingUp: true, wingTimer: 0, speedMult: birdSpeed });
+            this.obstacles.push({ type: 'bird', x: W + 20, y: h, w: 42, h: 28, speedMult: birdSpeed });
         } else if (rand < 0.30) {
             // 1, 2, or 3 cones in a row
             const count = Math.random() < 0.45 ? (Math.random() < 0.5 ? 2 : 3) : 1;
@@ -531,7 +542,7 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
         const { started, dead } = this.state;
 
         // background — match exact app colours from tailwind config
-        const isDark = !document.body.classList.contains('light-style');
+        const isDark = this.isDarkMode();
         const bg = isDark ? (night ? '#1a1a1a' : '#333333') : (night ? '#1a1a2e' : '#f0f2f5');
         const fg = (isDark || night) ? '#e0e0e0' : '#535353';
         ctx.fillStyle = bg;
@@ -628,30 +639,22 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
                 ctx.lineTo(o.x + 32, o.y + 26);
                 ctx.closePath();
                 ctx.fill();
-                ctx.fillStyle = barOrange;
-                ctx.fillRect(o.x, o.y + 6, 52, 10);
-                ctx.fillStyle = '#ffffff';
-                for (let s = 0; s < 5; s++) {
-                    ctx.beginPath();
-                    ctx.moveTo(o.x + 4 + s * 10, o.y + 6);
-                    ctx.lineTo(o.x + 9 + s * 10, o.y + 6);
-                    ctx.lineTo(o.x + 4 + s * 10, o.y + 16);
-                    ctx.lineTo(o.x - 1 + s * 10, o.y + 16);
-                    ctx.closePath();
-                    ctx.fill();
-                }
-                ctx.fillStyle = barOrange;
-                ctx.fillRect(o.x, o.y + 20, 52, 8);
-                ctx.fillStyle = '#ffffff';
-                for (let s = 0; s < 5; s++) {
-                    ctx.beginPath();
-                    ctx.moveTo(o.x + 4 + s * 10, o.y + 20);
-                    ctx.lineTo(o.x + 9 + s * 10, o.y + 20);
-                    ctx.lineTo(o.x + 4 + s * 10, o.y + 28);
-                    ctx.lineTo(o.x - 1 + s * 10, o.y + 28);
-                    ctx.closePath();
-                    ctx.fill();
-                }
+                const drawStripe = (yTop: number, h: number) => {
+                    ctx.fillStyle = barOrange;
+                    ctx.fillRect(o.x, yTop, 52, h);
+                    ctx.fillStyle = '#ffffff';
+                    for (let s = 0; s < 5; s++) {
+                        ctx.beginPath();
+                        ctx.moveTo(o.x + 4 + s * 10, yTop);
+                        ctx.lineTo(o.x + 9 + s * 10, yTop);
+                        ctx.lineTo(o.x + 4 + s * 10, yTop + h);
+                        ctx.lineTo(o.x - 1 + s * 10, yTop + h);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                };
+                drawStripe(o.y + 6, 10);
+                drawStripe(o.y + 20, 8);
             } else if (o.type === 'alligator') {
                 ctx.fillStyle = night ? '#5ab55a' : (isDark ? '#b0b0b0' : '#535353');
                 ctx.fillRect(o.x + 14, o.y + 6, 36, 14);
@@ -958,15 +961,8 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
         const ox = d.x - 9;
         const oy = d.y - 17 * S;
         const night = this.nightMode;
-        const isDark = !document.body.classList.contains('light-style');
-        const C: (string | null)[] = [
-            null,
-            night ? '#b8b8b8' : (isDark ? '#999999' : '#767676'),
-            night ? '#686868' : (isDark ? '#484848' : '#3a3a3a'),
-            night ? '#d8d8d8' : (isDark ? '#c0c0c0' : '#b8b8b8'),
-            '#111111',
-            '#eeeeee',
-        ];
+        const isDark = this.isDarkMode();
+        const C = this.getRaccoonColors(night, isDark);
         const l = Math.sin(d.legPhase) > 0;
         const legs = l ? LEGS_A : LEGS_B;
         this.deathPixels = [];
@@ -1028,17 +1024,10 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
 
         const d = this.raccoon;
         const S = 2;
-        const pulse = glowColor ? 0.8 + 0.2 * Math.sin(Date.now() / 200) : 0;
+        const pulse = glowColor ? 0.8 + 0.2 * Math.sin(performance.now() / 200) : 0;
 
         // 0=transparent 1=mid-grey 2=dark-grey 3=light-grey 4=black 5=white/eyes
-        const C: (string | null)[] = [
-            null,
-            night ? '#b8b8b8' : (isDark ? '#999999' : '#767676'), // 1 mid-grey
-            night ? '#686868' : (isDark ? '#484848' : '#3a3a3a'), // 2 dark-grey
-            night ? '#d8d8d8' : (isDark ? '#c0c0c0' : '#b8b8b8'), // 3 light-grey
-            '#111111',                                              // 4 black
-            '#eeeeee',                                              // 5 white
-        ];
+        const C = this.getRaccoonColors(night, isDark);
 
         const draw = (grid: number[][], ox: number, oy: number) => {
             grid.forEach((row, r) => row.forEach((c, col) => {
