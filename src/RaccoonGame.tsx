@@ -544,8 +544,7 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
         // background — match exact app colours from tailwind config
         const isDark = this.isDarkMode();
         const bg = isDark ? (night ? '#1a1a1a' : '#333333') : (night ? '#1a1a2e' : '#f0f2f5');
-        const fg = (isDark || night) ? '#e0e0e0' : '#535353';
-        ctx.fillStyle = bg;
+        const fg = (isDark || night) ? '#e0e0e0' : '#1a1a1a';
         ctx.clearRect(0, 0, W, H);
 
         // clouds
@@ -845,25 +844,36 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
         const glowColor = (!started || dead) ? (isDark ? '#ffffff' : '#111111') : null;
         this.drawRaccoon(ctx, isDark || night, isDark, glowColor);
 
+        // text outline for readability on transparent canvas
+        const outlineColor = isDark ? 'rgba(0,0,0,0.9)' : 'rgba(255,255,255,0.95)';
+        ctx.save();
+        ctx.strokeStyle = outlineColor;
+        ctx.lineWidth = 4;
+        ctx.lineJoin = 'round';
+
+        const strokeThenFill = (text: string, x: number, y: number) => {
+            ctx.strokeText(text, x, y);
+            ctx.fillText(text, x, y);
+        };
+
         // score
         if (started) {
             ctx.fillStyle = fg;
             ctx.font = `bold 16px monospace`;
             ctx.textAlign = 'right';
             const scoreStr = String(score).padStart(5, '0');
-            ctx.fillText(`HI ${String(this.state.best).padStart(5, '0')}  ${scoreStr}`, W - 12, 24);
+            strokeThenFill(`HI ${String(this.state.best).padStart(5, '0')}  ${scoreStr}`, W - 12, 24);
         }
 
         // "FASTER!" flash on speed milestone
         if (started && !dead && this.speedFlash > 0) {
             const alpha = Math.min(1, this.speedFlash / 300);
-            ctx.save();
             ctx.globalAlpha = alpha;
             ctx.fillStyle = '#ff4444';
             ctx.font = `bold 22px monospace`;
             ctx.textAlign = 'center';
-            ctx.fillText('FASTER!', W / 2, 50);
-            ctx.restore();
+            strokeThenFill('FASTER!', W / 2, 50);
+            ctx.globalAlpha = 1;
         }
 
         // start overlay
@@ -871,7 +881,7 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
             ctx.fillStyle = fg;
             ctx.font = `14px monospace`;
             ctx.textAlign = 'center';
-            ctx.fillText('Press \u23b5 or \ud83d\uddb1\ufe0f click to start', W / 2, 70);
+            strokeThenFill('Press \u23b5 or \ud83d\uddb1\ufe0f click to start', W / 2, 70);
         }
 
         // dead overlay
@@ -879,10 +889,12 @@ export default class RaccoonGame extends Component<Record<string, never>, GameSt
             ctx.fillStyle = fg;
             ctx.font = `bold 18px monospace`;
             ctx.textAlign = 'center';
-            ctx.fillText('GAME OVER', W / 2, 55);
+            strokeThenFill('GAME OVER', W / 2, 55);
             ctx.font = `13px monospace`;
-            ctx.fillText('Press \u23b5 or \ud83d\uddb1\ufe0f click to restart', W / 2, 82);
+            strokeThenFill('Press \u23b5 or \ud83d\uddb1\ufe0f click to restart', W / 2, 82);
         }
+
+        ctx.restore();
     }
 
     drawEating(ctx: CanvasRenderingContext2D, night: boolean, isDark: boolean) {
